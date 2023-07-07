@@ -30,7 +30,7 @@ public class UserController{
     @Autowired
     JwtService jwtService;
 
-    @GetMapping("/login")
+    @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String,Object> payload){
         if(!payload.containsKey("username") || !payload.containsKey("password")){
             return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);

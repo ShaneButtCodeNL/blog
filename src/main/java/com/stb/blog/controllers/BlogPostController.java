@@ -143,12 +143,11 @@ public class BlogPostController {
         return new ResponseEntity<>(blogPost.getBlogPostReturn(),HttpStatus.OK);
     }
 
-    //TODO fix payload author
     @PostMapping("/comment")
     @RolesAllowed({"ROLE_OWNER","ROLE_ADMIN","ROLE_USER"})
     public ResponseEntity<BlogPostReturn> addCommentToBlogPost(@RequestBody Map<String,Object> payload , @RequestHeader(HttpHeaders.AUTHORIZATION) String bearerToken){
         Date dateNow=new Date();
-        if(!payload.containsKey("blogId") || !payload.containsKey("body") || !payload.containsKey("author")){
+        if(!payload.containsKey("blogId") || !payload.containsKey("body")){
             return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
         }
         BlogPostComment blogPostComment = new BlogPostComment();
@@ -168,11 +167,20 @@ public class BlogPostController {
         blogPostComment.setDeleted(false);
         // Set replies to empty list
         blogPostComment.setReplies(new ArrayList<BlogPostComment>());
+
+        //Check if token is still valid
+        String jwtString ;
+        try {
+            jwtString=jwtService.getJWTFromBearerToken(bearerToken);
+        }catch (JwtTokenException e){
+            return new ResponseEntity<>(null,HttpStatus.UNAUTHORIZED);
+        }
         // Set author
-        User requestUser = userService.findUserByUsername(payload.get("author").toString());
+        User requestUser = userService.findUserByUsername(jwtService.getUsernameFromToken(jwtString));
         if(requestUser == null){
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
         }
+
         blogPostComment.setAuthor(requestUser.getUsername());
         // Set Title or give default if no title given
         blogPostComment.setTitle(
@@ -184,14 +192,7 @@ public class BlogPostController {
         // Set an id to use to identify without reveling id
         blogPostComment.setCommentId(new ObjectId().toHexString());
 
-        //Check if token is still valid
-        String jwtString ;
-        try {
-            jwtString=jwtService.getJWTFromBearerToken(bearerToken);
-            if(!jwtService.getUsernameFromToken(jwtString).equals(requestUser.getUsername())) throw new JwtTokenException("Token details don't match");
-        }catch (JwtTokenException e){
-            return new ResponseEntity<>(null,HttpStatus.UNAUTHORIZED);
-        }
+
 
         BlogPost blogPost = blogPostService.getBlogPostWithBlogId(blogPostComment.getBlogId());
         if(blogPost == null) return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
