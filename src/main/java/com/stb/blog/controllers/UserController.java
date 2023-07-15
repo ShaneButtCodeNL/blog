@@ -30,6 +30,42 @@ public class UserController{
     @Autowired
     JwtService jwtService;
 
+    @GetMapping("/exists/{username}")
+    public ResponseEntity<?> checkUsernameExists(@PathVariable String username){
+        var user = userService.findUserByUsername(username);
+        if(user != null) return new ResponseEntity<>("Username Exists",HttpStatus.CONFLICT);
+        return new ResponseEntity<>("Username available",HttpStatus.OK);
+    }
+
+    @GetMapping("/details/{username}")
+    public ResponseEntity<UserReturn> getUserDetailsFromUserName(@PathVariable String username){
+        var user = userService.findUserByUsername(username);
+        if(user != null) return new ResponseEntity<>(user.getUserReturn(),HttpStatus.OK);
+        return  new ResponseEntity<>(null,HttpStatus.NOT_FOUND);
+    }
+
+    @PostMapping("/validate-token")
+    public ResponseEntity<Boolean> validateToken(@RequestBody Map<String,String> payload){
+        if(!payload.containsKey("token")) return new ResponseEntity<>(false,HttpStatus.BAD_REQUEST);
+        String token = payload.get("token");
+        boolean valid = jwtService.validateToken(token);
+        return new ResponseEntity<>(valid,HttpStatus.OK);
+    }
+
+    @PostMapping("/revalidate-token")
+    public ResponseEntity<?> revalidateToken(@RequestBody Map<String,String> payload){
+        if(!payload.containsKey("token"))return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
+        String username = jwtService.getUsernameFromToken(payload.get("token"));
+        User user = userService.findUserByUsername(username);
+        String newToken ;
+        try {
+            newToken=jwtService.generateToken(user);
+        }catch (Exception e){
+            return new ResponseEntity<>("",HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(newToken,HttpStatus.OK);
+    }
+
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String,Object> payload){
         if(!payload.containsKey("username") || !payload.containsKey("password")){
