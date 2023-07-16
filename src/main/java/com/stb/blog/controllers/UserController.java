@@ -11,6 +11,7 @@ import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -119,7 +120,8 @@ public class UserController{
 
 
     @PutMapping("/add-auth/admin")
-    @RolesAllowed({"ROLE_OWNER","ROLE_ADMIN"})
+    @PreAuthorize("hasRole('ROLE_OWNER') or hasRole('ROLE_ADMIN')")
+    //@RolesAllowed({"ROLE_OWNER","ROLE_ADMIN"})
     public ResponseEntity<?> addUserRoleAdmin(@RequestBody Map<String,Object> payload){
         Date dateNow = new Date();
         if( !payload.containsKey("username") ){
@@ -136,7 +138,8 @@ public class UserController{
     }
 
     @PutMapping("/add-auth/writer")
-    @RolesAllowed({"ROLE_OWNER","ROLE_ADMIN"})
+    @PreAuthorize("hasRole('ROLE_OWNER') or hasRole('ROLE_ADMIN')")
+//    @RolesAllowed({"ROLE_OWNER","ROLE_ADMIN"})
     public ResponseEntity<?> addUserRoleWriter(@RequestBody Map<String,Object> payload){
         Date dateNow = new Date();
         if( !payload.containsKey("username") ){
@@ -153,7 +156,8 @@ public class UserController{
     }
 
     @PutMapping("/add-auth/moderator")
-    @RolesAllowed({"ROLE_OWNER","ROLE_ADMIN"})
+    @PreAuthorize("hasRole('ROLE_OWNER') or hasRole('ROLE_ADMIN')")
+//    @RolesAllowed({"ROLE_OWNER","ROLE_ADMIN"})
     public ResponseEntity<?> addUserRoleModerator(@RequestBody Map<String,Object> payload){
         Date dateNow = new Date();
         if( !payload.containsKey("username") ){
@@ -170,7 +174,8 @@ public class UserController{
     }
 
     @PutMapping("/remove-auth/admin")
-    @RolesAllowed({"ROLE_OWNER","ROLE_ADMIN"})
+    @PreAuthorize("hasRole('ROLE_OWNER') or hasRole('ROLE_ADMIN')")
+//    @RolesAllowed({"ROLE_OWNER","ROLE_ADMIN"})
     public ResponseEntity<?> removeUserRoleAdmin(@RequestBody Map<String,Object> payload){
         Date dateNow = new Date();
         if( !payload.containsKey("username") ){
@@ -187,7 +192,8 @@ public class UserController{
     }
 
     @PutMapping("/remove-auth/writer")
-    @RolesAllowed({"ROLE_OWNER","ROLE_ADMIN"})
+    @PreAuthorize("hasRole('ROLE_OWNER') or hasRole('ROLE_ADMIN')")
+//    @RolesAllowed({"ROLE_OWNER","ROLE_ADMIN"})
     public ResponseEntity<?> removeUserRoleWriter(@RequestBody Map<String,Object> payload){
         Date dateNow = new Date();
         if( !payload.containsKey("username") ){
@@ -204,7 +210,8 @@ public class UserController{
     }
 
     @PutMapping("/remove-auth/moderator")
-    @RolesAllowed({"ROLE_OWNER","ROLE_ADMIN"})
+    @PreAuthorize("hasRole('ROLE_OWNER') or hasRole('ROLE_ADMIN')")
+//    @RolesAllowed({"ROLE_OWNER","ROLE_ADMIN"})
     public ResponseEntity<?> removeUserRoleModerator(@RequestBody Map<String,Object> payload){
         Date dateNow = new Date();
         if( !payload.containsKey("username") ){

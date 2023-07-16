@@ -5,12 +5,14 @@ import com.stb.blog.models.*;
 import com.stb.blog.services.BlogPostService;
 import com.stb.blog.services.JwtService;
 import com.stb.blog.services.UserService;
+import jakarta.annotation.security.DeclareRoles;
 import jakarta.annotation.security.RolesAllowed;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.text.ParseException;
@@ -18,6 +20,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 @RestController
+@DeclareRoles({"ROLE_OWNER","ROLE_ADMIN","ROLE_WRITER","ROLE_USER"})
 @RequestMapping("/api/blog/posts")
 public class BlogPostController {
 
@@ -59,7 +62,7 @@ public class BlogPostController {
 
 
     @PostMapping("/")
-    @RolesAllowed({"ROLE_OWNER","ROLE_ADMIN","ROLE_WRITER"})
+    @PreAuthorize("hasRole('ROLE_OWNER') or hasRole('ROLE_ADMIN') or hasRole('ROLE_WRITER')")
     public ResponseEntity<BlogPostReturn> makeNewBlogPost(@RequestBody Map<String,Object> payload , @RequestHeader(HttpHeaders.AUTHORIZATION) String bearerToken){
         Date dateNow=new Date();
         if(!payload.containsKey("title") || !payload.containsKey("body") )return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
@@ -90,7 +93,8 @@ public class BlogPostController {
     }
 
     @PutMapping("/")
-    @RolesAllowed({"ROLE_OWNER","ROLE_ADMIN","ROLE_WRITER"})
+    @PreAuthorize("hasRole('ROLE_OWNER') or hasRole('ROLE_ADMIN') or hasRole('ROLE_WRITER')")
+    //@RolesAllowed({"ROLE_OWNER","ROLE_ADMIN","ROLE_WRITER"})
     public ResponseEntity<BlogPostReturn> updateExistingBlogPost(@RequestBody Map<String,String> payload , @RequestHeader(HttpHeaders.AUTHORIZATION) String bearerToken){
         Date dateNow = new Date();
         if(!payload.containsKey("blogId")){
@@ -144,7 +148,8 @@ public class BlogPostController {
     }
 
     @PostMapping("/comment")
-    @RolesAllowed({"ROLE_OWNER","ROLE_ADMIN","ROLE_USER"})
+    @PreAuthorize("hasRole('ROLE_OWNER') or hasRole('ROLE_ADMIN') or hasRole('ROLE_WRITER') or hasRole('ROLE_USER')")
+    //@RolesAllowed({"ROLE_OWNER","ROLE_ADMIN","ROLE_USER"})
     public ResponseEntity<BlogPostReturn> addCommentToBlogPost(@RequestBody Map<String,Object> payload , @RequestHeader(HttpHeaders.AUTHORIZATION) String bearerToken){
         Date dateNow=new Date();
         if(!payload.containsKey("blogId") || !payload.containsKey("body")){
@@ -210,7 +215,8 @@ public class BlogPostController {
 
 
     @PutMapping("/comment")
-    @RolesAllowed({"ROLE_OWNER","ROLE_ADMIN","ROLE_USER"})
+    @PreAuthorize("hasRole('ROLE_OWNER') or hasRole('ROLE_ADMIN') or hasRole('ROLE_WRITER') or hasRole('ROLE_USER')")
+    //@RolesAllowed({"ROLE_OWNER","ROLE_ADMIN","ROLE_USER"})
     public ResponseEntity<?> updateCommentInBlogPost(@RequestBody Map<String,Object> payload , @RequestHeader(HttpHeaders.AUTHORIZATION) String bearerToken){
         Date dateNow = new Date();
         //Check for blogId and commentId
@@ -270,7 +276,8 @@ public class BlogPostController {
     }
 
     @PutMapping("/post/like/{blogId}")
-    @RolesAllowed({"ROLE_OWNER","ROLE_ADMIN","ROLE_WRITER","ROLE_USER"})
+    @PreAuthorize("hasRole('ROLE_OWNER') or hasRole('ROLE_ADMIN') or hasRole('ROLE_WRITER') or hasRole('ROLE_USER')")
+//    @RolesAllowed({"ROLE_OWNER","ROLE_ADMIN","ROLE_WRITER","ROLE_USER"})
     public ResponseEntity<String> likeBlogPost(@PathVariable String blogId, @RequestHeader(HttpHeaders.AUTHORIZATION) String bearerToken){
         BlogPost blogPost = blogPostService.getBlogPostWithBlogId(blogId);
         if(blogPost == null) return new ResponseEntity<>(null,HttpStatus.NOT_FOUND);
@@ -298,7 +305,8 @@ public class BlogPostController {
     }
 
     @PutMapping("/comment/like/{blogId}/{commentId}")
-    @RolesAllowed({"ROLE_OWNER","ROLE_ADMIN","ROLE_WRITER","ROLE_USER"})
+    @PreAuthorize("hasRole('ROLE_OWNER') or hasRole('ROLE_ADMIN') or hasRole('ROLE_WRITER') or hasRole('ROLE_USER')")
+//    @RolesAllowed({"ROLE_OWNER","ROLE_ADMIN","ROLE_WRITER","ROLE_USER"})
     public ResponseEntity<String> likeBlogPostComment(
             @PathVariable String blogId,
             @PathVariable String commentId,
@@ -332,7 +340,8 @@ public class BlogPostController {
     }
 
     @PutMapping("/delete/post")
-    @RolesAllowed({"ROLE_OWNER","ROLE_ADMIN","ROLE_WRITER"})
+    @PreAuthorize("hasRole('ROLE_OWNER') or hasRole('ROLE_ADMIN') or hasRole('ROLE_WRITER')")
+//    @RolesAllowed({"ROLE_OWNER","ROLE_ADMIN","ROLE_WRITER"})
     public ResponseEntity<BlogPostReturn> flagPostAsDeleted(@RequestBody Map<String,Object> payload,@RequestHeader(HttpHeaders.AUTHORIZATION) String bearerToken){
         if(!payload.containsKey("blogId")){
             return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
@@ -365,7 +374,9 @@ public class BlogPostController {
     }
 
     @PutMapping("/restore/blog")
-    @RolesAllowed({"ROLE_OWNER","ROLE_ADMIN","ROLE_WRITER"})
+    @PreAuthorize("hasRole('ROLE_OWNER') or hasRole('ROLE_ADMIN') or hasRole('ROLE_WRITER')")
+
+//    @RolesAllowed({"ROLE_OWNER","ROLE_ADMIN","ROLE_WRITER"})
     public ResponseEntity<BlogPostReturn> restoreDeletedBlogPost(@RequestBody Map<String,Object> payload, @RequestHeader(HttpHeaders.AUTHORIZATION) String bearerToken){
         if(!payload.containsKey("blogId")) return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
 
@@ -389,7 +400,8 @@ public class BlogPostController {
     }
 
     @PutMapping("/delete/comment")
-    @RolesAllowed({"ROLE_OWNER","ROLE_ADMIN","ROLE_WRITER"})
+    @PreAuthorize("hasRole('ROLE_OWNER') or hasRole('ROLE_ADMIN') or hasRole('ROLE_WRITER')")
+    //@RolesAllowed({"ROLE_OWNER","ROLE_ADMIN","ROLE_WRITER"})
     public ResponseEntity<BlogPostCommentReturn> flagCommentAsDeleted(@RequestBody Map<String,Object> payload,@RequestHeader(HttpHeaders.AUTHORIZATION) String bearerToken){
         if(!payload.containsKey("blogId") || !payload.containsKey("commentId")){
             return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
@@ -434,7 +446,9 @@ public class BlogPostController {
 
 
     @PutMapping("/restore/comment")
-    @RolesAllowed({"ROLE_OWNER","ROLE_ADMIN","ROLE_WRITER","ROLE_USER"})
+    @PreAuthorize("hasRole('ROLE_OWNER') or hasRole('ROLE_ADMIN') or hasRole('ROLE_WRITER') or hasRole('ROLE_USER')")
+
+//    @RolesAllowed({"ROLE_OWNER","ROLE_ADMIN","ROLE_WRITER","ROLE_USER"})
     public ResponseEntity<BlogPostCommentReturn> restoreBlogPostComment(@RequestBody Map<String,Object> payload,@RequestHeader(HttpHeaders.AUTHORIZATION) String bearerToken){
         if(!payload.containsKey("blogId") || !payload.containsKey("commentId")) return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
 
@@ -464,7 +478,9 @@ public class BlogPostController {
 
 
     @DeleteMapping("/blog")
-    @RolesAllowed({"ROLE_OWNER","ROLE_ADMIN","ROLE_WRITER"})
+    @PreAuthorize("hasRole('ROLE_OWNER') or hasRole('ROLE_ADMIN') or hasRole('ROLE_WRITER')")
+
+//    @RolesAllowed({"ROLE_OWNER","ROLE_ADMIN","ROLE_WRITER"})
     public ResponseEntity<BlogPostReturn> deleteBlogPost(@RequestBody Map<String,Object> payload, @RequestHeader(HttpHeaders.AUTHORIZATION) String bearerToken){
         if(!payload.containsKey("blogId")){
             return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
@@ -498,7 +514,8 @@ public class BlogPostController {
 
 
     @DeleteMapping("/comment")
-    @RolesAllowed({"ROLE_OWNER","ROLE_ADMIN","ROLE_WRITER","ROLE_USER"})
+    @PreAuthorize("hasRole('ROLE_OWNER') or hasRole('ROLE_ADMIN') or hasRole('ROLE_WRITER') or hasRole('ROLE_USER')")
+//    @RolesAllowed({"ROLE_OWNER","ROLE_ADMIN","ROLE_WRITER","ROLE_USER"})
     public ResponseEntity<BlogPostCommentReturn> deleteCommentFromBlogPost(@RequestBody Map<String,Object> payload, @RequestHeader(HttpHeaders.AUTHORIZATION) String bearerToken){
         if(!payload.containsKey("blogId") || !payload.containsKey("commentId")){
             return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
