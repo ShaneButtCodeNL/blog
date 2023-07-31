@@ -41,7 +41,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     ) throws ServletException, IOException {
         // Check for bearer token in header
         final String requestTokenHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
-        if(requestTokenHeader.isEmpty() || !requestTokenHeader.startsWith(BEARER)){
+        if(requestTokenHeader == null || requestTokenHeader.isEmpty() || !requestTokenHeader.startsWith(BEARER)){
             filterChain.doFilter(request,response);
             return;
         }

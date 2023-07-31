@@ -38,8 +38,10 @@ public class JwtTokenReader {
         Jws<Claims> claims;
         try {
             claims = Jwts.parserBuilder().setSigningKey(secret).build().parseClaimsJws(jwtString);
-        } catch (SignatureException e){
+        } catch (SignatureException e) {
             throw new JwtTokenNotFoundException("JWT not found.");
+        } catch (ExpiredJwtException e){
+            throw new JwtTokenExpiredException("Token expired");
         }
         Claims body = claims.getBody();
         String subject = body.getSubject();

@@ -76,11 +76,12 @@ public class UserController{
         String password = payload.get("password").toString();
 
         var user = userService.findUserByUsernameAndPassword(username,password);
+        if(user == null) return new ResponseEntity<>(null,HttpStatus.NOT_FOUND);
         String jwtString;
         try{
             jwtString=jwtService.generateToken(user);
         } catch(InvalidUserCredentialsException e){
-            return new ResponseEntity<>(e.getMessage(),HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(null,HttpStatus.NOT_FOUND);
         }
         updateUserLastAccess(user);
         return new ResponseEntity<>(new LoginReturn(jwtString,user.getUserReturn()),HttpStatus.OK);

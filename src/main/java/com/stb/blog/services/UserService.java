@@ -25,6 +25,7 @@ public class UserService implements UserDetailsService {
 
     public User findUserByUsernameAndPassword(String username,String password){
         var user = userRepository.findUserByUsername(username);
+        if(user == null) return null;
         var decryptMatch= new BCryptPasswordEncoder().matches(password,user.getPassword());
         if(user!=null && decryptMatch) return user;
         return null;

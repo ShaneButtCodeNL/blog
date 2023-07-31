@@ -40,6 +40,28 @@ public class BlogPostController {
         return new ResponseEntity<>(blogPostService.getAllBlogPosts().stream().map(blogPost -> blogPost.getBlogPostReturn()).toList(), HttpStatus.OK);
     }
 
+    @GetMapping("/latest")
+    public ResponseEntity<BlogPostReturn> getLatestBlogPost(){
+        var list = blogPostService.getAllBlogPosts();
+        if(list == null || list.size()==0)return new ResponseEntity<>(null,HttpStatus.NOT_FOUND);
+        BlogPost latest = list.get(list.size()-1);
+        return new ResponseEntity<>(latest.getBlogPostReturn(),HttpStatus.OK);
+
+    }
+
+    @GetMapping("/latest/{num}")
+    public ResponseEntity<List<BlogPostReturn>> getLatestNBlogPost(@PathVariable int num){
+        var list = blogPostService.getAllBlogPosts();
+        if(list == null || list.size()==0)return new ResponseEntity<>(null,HttpStatus.NOT_FOUND);
+        BlogPost[] latest = new BlogPost[num];
+        while(num>0){
+            num--;
+            latest[num]=list.get(list.size()-num-1);
+        }
+        return new ResponseEntity<>(Arrays.stream(latest).map((var v)->v.getBlogPostReturn()).toList(),HttpStatus.OK);
+
+    }
+
     @GetMapping("/post/{blogId}")
     public ResponseEntity<BlogPostReturn> getBlogPostById(@PathVariable String blogId){
         var blogPost = blogPostService.getBlogPostWithBlogId(blogId);
@@ -94,7 +116,6 @@ public class BlogPostController {
 
     @PutMapping("/")
     @PreAuthorize("hasRole('ROLE_OWNER') or hasRole('ROLE_ADMIN') or hasRole('ROLE_WRITER')")
-    //@RolesAllowed({"ROLE_OWNER","ROLE_ADMIN","ROLE_WRITER"})
     public ResponseEntity<BlogPostReturn> updateExistingBlogPost(@RequestBody Map<String,String> payload , @RequestHeader(HttpHeaders.AUTHORIZATION) String bearerToken){
         Date dateNow = new Date();
         if(!payload.containsKey("blogId")){
@@ -149,7 +170,6 @@ public class BlogPostController {
 
     @PostMapping("/comment")
     @PreAuthorize("hasRole('ROLE_OWNER') or hasRole('ROLE_ADMIN') or hasRole('ROLE_WRITER') or hasRole('ROLE_USER')")
-    //@RolesAllowed({"ROLE_OWNER","ROLE_ADMIN","ROLE_USER"})
     public ResponseEntity<BlogPostReturn> addCommentToBlogPost(@RequestBody Map<String,Object> payload , @RequestHeader(HttpHeaders.AUTHORIZATION) String bearerToken){
         Date dateNow=new Date();
         if(!payload.containsKey("blogId") || !payload.containsKey("body")){
@@ -216,7 +236,6 @@ public class BlogPostController {
 
     @PutMapping("/comment")
     @PreAuthorize("hasRole('ROLE_OWNER') or hasRole('ROLE_ADMIN') or hasRole('ROLE_WRITER') or hasRole('ROLE_USER')")
-    //@RolesAllowed({"ROLE_OWNER","ROLE_ADMIN","ROLE_USER"})
     public ResponseEntity<?> updateCommentInBlogPost(@RequestBody Map<String,Object> payload , @RequestHeader(HttpHeaders.AUTHORIZATION) String bearerToken){
         Date dateNow = new Date();
         //Check for blogId and commentId
