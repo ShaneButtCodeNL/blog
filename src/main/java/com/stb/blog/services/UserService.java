@@ -11,6 +11,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Service
 public class UserService implements UserDetailsService {
     @Autowired
@@ -53,5 +56,14 @@ public class UserService implements UserDetailsService {
         if(user == null) throw new UsernameNotFoundException("User [ " + username + " ] not found");
 
         return user;
+    }
+
+    public List<String> getAllUsernames(){
+        ArrayList<String> usernames = new ArrayList<>();
+        var userList = userRepository.findAll();
+        for( var user : userList){
+            usernames.add(user.getUsername());
+        }
+        return usernames;
     }
 }

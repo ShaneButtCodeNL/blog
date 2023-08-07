@@ -6,6 +6,7 @@ import com.stb.blog.models.User;
 import com.stb.blog.models.UserReturn;
 import com.stb.blog.services.JwtService;
 import com.stb.blog.services.UserService;
+import jakarta.annotation.security.DeclareRoles;
 import jakarta.annotation.security.RolesAllowed;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,9 +19,11 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 
 @RestController
+@DeclareRoles({"ROLE_OWNER","ROLE_ADMIN","ROLE_WRITER","ROLE_USER"})
 @RequestMapping("/api/blog/users")
 public class UserController{
     @Autowired
@@ -36,6 +39,13 @@ public class UserController{
         var user = userService.findUserByUsername(username);
         if(user != null) return new ResponseEntity<>("Username Exists",HttpStatus.CONFLICT);
         return new ResponseEntity<>("Username available",HttpStatus.OK);
+    }
+
+    @PostMapping("/all-users")
+    @PreAuthorize("hasRole('ROLE_OWNER') or hasRole('ROLE_ADMIN')")
+    public ResponseEntity<List<String>> getAllUsernames(){
+        var usernames = userService.getAllUsernames();
+        return new ResponseEntity<>(usernames,HttpStatus.OK);
     }
 
     @GetMapping("/details/{username}")
