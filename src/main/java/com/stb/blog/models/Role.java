@@ -12,4 +12,8 @@ public class Role {
     public String toString(){
         return name;
     }
+
+    public boolean isEqualToString(String role){
+        return name.equals(role);
+    }
 }

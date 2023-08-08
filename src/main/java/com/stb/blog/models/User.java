@@ -59,7 +59,10 @@ public class User implements UserDetails {
 
     public boolean removeRole(String role) {
         for(var savedRoll : roles){
-            if(savedRoll.getName().equals(role))return roles.remove(role);
+            if(savedRoll.isEqualToString(role)){
+                var res = roles.remove(savedRoll);
+                return res;
+            }
         }
         return false;
     }
