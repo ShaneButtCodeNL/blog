@@ -4,6 +4,7 @@ import com.stb.blog.models.User;
 import com.stb.blog.repositories.UserRepository;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -18,6 +19,8 @@ import java.util.List;
 public class UserService implements UserDetailsService {
     @Autowired
     UserRepository userRepository;
+    @Autowired
+    private MongoTemplate mongoTemplate;
     //@Autowired
     PasswordEncoder passwordEncoder;
 
@@ -47,6 +50,14 @@ public class UserService implements UserDetailsService {
     public User findUserByUserId(String userId){
         var user = userRepository.findUserByUserId(userId);
         return user;
+    }
+
+    public User deleteUser(User user){
+        var del = mongoTemplate.remove(user).getDeletedCount();
+        if(del > 0){
+            return user;
+        }
+        return null;
     }
 
 

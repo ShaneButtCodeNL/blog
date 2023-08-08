@@ -224,7 +224,6 @@ public class UserController{
     @PreAuthorize("hasRole('ROLE_OWNER') or hasRole('ROLE_ADMIN')")
 //    @RolesAllowed({"ROLE_OWNER","ROLE_ADMIN"})
     public ResponseEntity<?> removeUserRoleModerator(@RequestBody Map<String,Object> payload){
-        Date dateNow = new Date();
         if( !payload.containsKey("username") ){
             return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
         }
@@ -237,6 +236,59 @@ public class UserController{
         var saved = userService.saveNewUser(userToChange);
         return new ResponseEntity<>(saved.getUserReturn(),HttpStatus.OK);
     }
+
+    @PutMapping("/ban-user/{username}")
+    @PreAuthorize("hasRole('ROLE_OWNER') or hasRole('ROLE_ADMIN')")
+    public ResponseEntity<UserReturn> banUser(@PathVariable String username){
+        User userToBan = userService.findUserByUsername(username);
+        if(userToBan == null) return  new ResponseEntity<>(null,HttpStatus.NOT_FOUND);
+        userToBan.ban();
+        var saved = userService.saveNewUser(userToBan);
+        return new ResponseEntity<>(saved.getUserReturn(),HttpStatus.OK);
+    }
+
+    @PutMapping("/unban-user/{username}")
+    @PreAuthorize("hasRole('ROLE_OWNER') or hasRole('ROLE_ADMIN')")
+    public ResponseEntity<UserReturn> unbanUser(@PathVariable String username){
+        User userToUnban = userService.findUserByUsername(username);
+        if(userToUnban == null) return  new ResponseEntity<>(null,HttpStatus.NOT_FOUND);
+        userToUnban.unban();
+        var saved = userService.saveNewUser(userToUnban);
+        return new ResponseEntity<>(saved.getUserReturn(),HttpStatus.OK);
+    }
+
+    @PutMapping("/disable-user/{username}")
+    @PreAuthorize("hasRole('ROLE_OWNER') or hasRole('ROLE_ADMIN')")
+    public ResponseEntity<UserReturn> disableUser(@PathVariable String username){
+        User user = userService.findUserByUsername(username);
+        if(user == null) return new ResponseEntity<>(null,HttpStatus.NOT_FOUND);
+        user.disable();
+        var saved = userService.saveNewUser(user);
+        if(saved == null)return  new ResponseEntity<>(null,HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(saved.getUserReturn(),HttpStatus.OK);
+    }
+
+    @PutMapping("/enable-user/{username}")
+    @PreAuthorize("hasRole('ROLE_OWNER') or hasRole('ROLE_ADMIN')")
+    public ResponseEntity<UserReturn> enableUser(@PathVariable String username){
+        User user = userService.findUserByUsername(username);
+        if(user == null) return new ResponseEntity<>(null,HttpStatus.NOT_FOUND);
+        user.enable();
+        var saved = userService.saveNewUser(user);
+        if(saved == null)return  new ResponseEntity<>(null,HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(saved.getUserReturn(),HttpStatus.OK);
+    }
+
+    @DeleteMapping("delete-user/{username}")
+    @PreAuthorize("hasRole('ROLE_OWNER') or hasRole('ROLE_ADMIN')")
+    public ResponseEntity<UserReturn> deleteUser(@PathVariable String username){
+        User user = userService.findUserByUsername(username);
+        if(user == null) return new ResponseEntity<>(null,HttpStatus.NOT_FOUND);
+        var deleted = userService.deleteUser(user);
+        if(deleted == null)return new ResponseEntity<>(null,HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(user.getUserReturn(), HttpStatus.OK);
+    }
+
 
 
 

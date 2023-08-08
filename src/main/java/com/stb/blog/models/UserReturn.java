@@ -15,4 +15,6 @@ public class UserReturn {
     private String username;
     private Set<String> roles;
     private Date createdOn;
+    private boolean isBanned;
+    private boolean isDisabled;
 }

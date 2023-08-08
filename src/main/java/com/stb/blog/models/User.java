@@ -25,6 +25,8 @@ public class User implements UserDetails {
     private Date createdOn;
     private Date lastAccess;
     private Set<Role> roles;
+    private boolean isBanned = false;
+    private boolean isDisabled = false;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -77,6 +79,22 @@ public class User implements UserDetails {
     public UserReturn getUserReturn(){
         Set<String> roleList=new HashSet<>();
         for(var role : roles) roleList.add(role.getName());
-        return new UserReturn(userId,username,roleList,createdOn);
+        return new UserReturn(userId,username,roleList,createdOn,isBanned,isDisabled);
+    }
+
+    public void ban(){
+        this.isBanned=true;
+    }
+
+    public void unban(){
+        isBanned = false;
+    }
+
+    public void disable(){
+        isDisabled = true;
+    }
+
+    public void enable(){
+        isDisabled = false;
     }
 }
