@@ -80,7 +80,7 @@ public class UserController{
         return new ResponseEntity<>(newToken,HttpStatus.OK);
     }
     @PostMapping("/has-any-auth")
-    public ResponseEntity<UserReturn> hasAuth(@RequestBody AuthCheck payload){
+    public ResponseEntity<UserReturn> hasAnyAuth(@RequestBody AuthCheck payload){
         if(payload.token() == null || payload.roles()==null)return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
         String token = payload.token();
         List<String> roles = payload.roles();
@@ -92,6 +92,21 @@ public class UserController{
             }
         }
         return new ResponseEntity<>(null,HttpStatus.UNAUTHORIZED);
+    }
+
+    @PostMapping("/has-all-auth")
+    public ResponseEntity<UserReturn> hasAllAuth(@RequestBody AuthCheck payload){
+        if(payload.token() == null || payload.roles()==null)return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
+        String token = payload.token();
+        List<String> roles = payload.roles();
+        var username = jwtService.getUsernameFromToken(token);
+        var user = userService.findUserByUsername(username);
+        for(var role : roles){
+            if(!user.hasRole(role)){
+                return new ResponseEntity<>(null,HttpStatus.UNAUTHORIZED);
+            }
+        }
+        return new ResponseEntity<>(user.getUserReturn(),HttpStatus.OK);
     }
 
     @PostMapping("/login")

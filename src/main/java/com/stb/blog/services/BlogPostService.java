@@ -110,6 +110,7 @@ public class BlogPostService {
         // If comment doesn't have a parent comment id it is comment to post
         if(foundComment.getParentCommentId() == null){
             boolean deleted=blogPost.getComments().removeIf(bpc -> bpc.getCommentId().equals(blogPostComment.getCommentId()));
+            mongoTemplate.save(blogPost);
             return deleted?blogPostComment:null;
         }
 
