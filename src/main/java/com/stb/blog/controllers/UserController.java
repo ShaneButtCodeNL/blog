@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
+
 @RestController
 @DeclareRoles({"ROLE_OWNER","ROLE_ADMIN","ROLE_WRITER","ROLE_USER"})
 @RequestMapping("/api/blog/users")
@@ -33,6 +34,8 @@ public class UserController{
 
     @Autowired
     JwtService jwtService;
+
+
 
     @GetMapping("/exists/{username}")
     public ResponseEntity<?> checkUsernameExists(@PathVariable String username){
@@ -75,6 +78,20 @@ public class UserController{
             return new ResponseEntity<>("",HttpStatus.NOT_FOUND);
         }
         return new ResponseEntity<>(newToken,HttpStatus.OK);
+    }
+    @PostMapping("/has-any-auth")
+    public ResponseEntity<UserReturn> hasAuth(@RequestBody AuthCheck payload){
+        if(payload.token() == null || payload.roles()==null)return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
+        String token = payload.token();
+        List<String> roles = payload.roles();
+        var username = jwtService.getUsernameFromToken(token);
+        var user = userService.findUserByUsername(username);
+        for(var role : roles){
+            if(user.hasRole(role)){
+                return new ResponseEntity<>(user.getUserReturn(),HttpStatus.OK);
+            }
+        }
+        return new ResponseEntity<>(null,HttpStatus.UNAUTHORIZED);
     }
 
     @PostMapping("/login")
@@ -302,3 +319,4 @@ public class UserController{
 }
 
 record LoginReturn(String token, UserReturn details){}
+record AuthCheck(String token,List<String> roles){}

@@ -58,6 +58,7 @@ public class SecurityConfig{
                         .requestMatchers("/api/blog/users/register").permitAll()
                         .requestMatchers("/api/blog/users/validate-token").permitAll()
                         .requestMatchers("/api/blog/users/revalidate-token").permitAll()
+                        .requestMatchers("/api/blog/users/has-any-auth").permitAll()
                         .anyRequest().authenticated())
                         .exceptionHandling(custom -> custom
                                 .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)));
