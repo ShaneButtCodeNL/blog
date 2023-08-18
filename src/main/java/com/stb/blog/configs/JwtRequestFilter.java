@@ -7,9 +7,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpHeaders;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -19,8 +17,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.List;
-
-import static org.apache.logging.log4j.ThreadContext.isEmpty;
 
 @Component
 public class JwtRequestFilter extends OncePerRequestFilter {
@@ -48,13 +44,13 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
         // Extract and validate token
         final String token = requestTokenHeader.substring(BEARER.length());
-        if(!jwtService.validateToken(token)){
+        if(!jwtService.validateAccessToken(token)){
             filterChain.doFilter(request,response);
             return;
         }
 
         // Get user identity
-        UserDetails userDetails = userService.loadUserByUsername(jwtService.getUsernameFromToken(token));
+        UserDetails userDetails = userService.loadUserByUsername(jwtService.getUsernameFromAccessToken(token));
 
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDetails,null,userDetails==null? List.of():userDetails.getAuthorities());
         authenticationToken.setDetails( new WebAuthenticationDetailsSource().buildDetails(request));

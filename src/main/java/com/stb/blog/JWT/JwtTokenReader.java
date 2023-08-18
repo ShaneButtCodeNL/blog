@@ -16,7 +16,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
-import java.util.Collection;
 import java.util.Date;
 
 @Component
@@ -25,15 +24,22 @@ public class JwtTokenReader {
     @Value("${jwt.secret}")
     private String secret;
 
+    @Value("${jwt.refresh.secret}")
+    private String refreshSecret;
+
     private Key getKey(){
         return Keys.hmacShaKeyFor(Decoders.BASE64.decode(secret));
     }
+    private Key getRefreshKey(){
+        return Keys.hmacShaKeyFor(Decoders.BASE64.decode(refreshSecret));
+    }
+
 
     @Autowired
     UserService userService;
 
 
-    public boolean verifyJwtString(String jwtString) throws JwtTokenException {
+    public boolean verifyAccessToken(String jwtString) throws JwtTokenException {
         Date currDate = new Date();
         Jws<Claims> claims;
         try {
@@ -58,7 +64,32 @@ public class JwtTokenReader {
         }
     }
 
-    public String getUsernameFromToken(String jwtString) throws JwtTokenException{
+    public boolean verifyRefreshToken(String jwtString) throws JwtTokenException {
+        Date currDate = new Date();
+        Jws<Claims> claims;
+        try {
+            claims = Jwts.parserBuilder().setSigningKey(refreshSecret).build().parseClaimsJws(jwtString);
+        } catch (SignatureException e) {
+            throw new JwtTokenNotFoundException("JWT not found.");
+        } catch (ExpiredJwtException e){
+            throw new JwtTokenExpiredException("Token expired");
+        }
+        Claims body = claims.getBody();
+        String subject = body.getSubject();
+        Date exp = body.getExpiration();
+        if (currDate.before(exp)) {
+            User requestUser = userService.findUserByUsername(subject);
+            if (requestUser.getUsername().equalsIgnoreCase(subject)) {
+                return true;
+            }else{
+                throw new JwtTokenNotValidUserException("This user doesn't have authorization.");
+            }
+        }else{
+            throw new JwtTokenExpiredException("JWT is expired.");
+        }
+    }
+
+    public String getUsernameFromAccessToken(String jwtString) throws JwtTokenException{
         Claims claims;
         try {
             claims = Jwts.parserBuilder().setSigningKey(secret).build().parseClaimsJws(jwtString).getBody();
@@ -68,7 +99,17 @@ public class JwtTokenReader {
         return claims.getSubject();
     }
 
-    public String getRolesFromToken(String jwtString) throws JwtTokenException{
+    public String getUsernameFromRefreshToken(String jwtString) throws JwtTokenException{
+        Claims claims;
+        try {
+            claims = Jwts.parserBuilder().setSigningKey(refreshSecret).build().parseClaimsJws(jwtString).getBody();
+        } catch (SignatureException e){
+            throw new JwtTokenNotFoundException("JWT not found.");
+        }
+        return claims.getSubject();
+    }
+
+    public String getRolesFromAccessToken(String jwtString) throws JwtTokenException{
         Claims claims;
         try{
             claims = Jwts.parserBuilder().setSigningKey(secret).build().parseClaimsJws(jwtString).getBody();

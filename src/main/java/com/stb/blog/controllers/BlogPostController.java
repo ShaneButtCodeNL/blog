@@ -6,7 +6,6 @@ import com.stb.blog.services.BlogPostService;
 import com.stb.blog.services.JwtService;
 import com.stb.blog.services.UserService;
 import jakarta.annotation.security.DeclareRoles;
-import jakarta.annotation.security.RolesAllowed;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -104,7 +103,7 @@ public class BlogPostController {
             return new ResponseEntity<>(null,HttpStatus.UNAUTHORIZED);
         }
 
-        String author = jwtService.getUsernameFromToken(jwtString);
+        String author = jwtService.getUsernameFromAccessToken(jwtString);
         String title = payload.get("title").toString();
         String body = payload.get("body").toString();
         BlogPost bp = new BlogPost();
@@ -138,7 +137,7 @@ public class BlogPostController {
         }
 
         // get user
-        User requestUser = userService.findUserByUsername(jwtService.getUsernameFromToken(jwtString));
+        User requestUser = userService.findUserByUsername(jwtService.getUsernameFromAccessToken(jwtString));
         if(requestUser == null){
             return new ResponseEntity<>(null,HttpStatus.NOT_FOUND);
         }
@@ -208,7 +207,7 @@ public class BlogPostController {
             return new ResponseEntity<>(null,HttpStatus.UNAUTHORIZED);
         }
         // Set author
-        User requestUser = userService.findUserByUsername(jwtService.getUsernameFromToken(jwtString));
+        User requestUser = userService.findUserByUsername(jwtService.getUsernameFromAccessToken(jwtString));
         if(requestUser == null){
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
         }
@@ -269,7 +268,7 @@ public class BlogPostController {
         var blogPostComment = blogPostCommentOptional.get();
 
         //Check role
-        String requestUsername = jwtService.getUsernameFromToken(jwtString);
+        String requestUsername = jwtService.getUsernameFromAccessToken(jwtString);
         User requestUser = userService.findUserByUsername(requestUsername);
         if(requestUser == null)return new ResponseEntity<>("User not found.",HttpStatus.NOT_FOUND);
 
@@ -316,7 +315,7 @@ public class BlogPostController {
             return new ResponseEntity<>(e.getMessage(),HttpStatus.UNAUTHORIZED);
         }
 
-        User requestUser = userService.findUserByUsername(jwtService.getUsernameFromToken(jwtString));
+        User requestUser = userService.findUserByUsername(jwtService.getUsernameFromAccessToken(jwtString));
         if(requestUser == null)  return new ResponseEntity<>("User Not Found",HttpStatus.NOT_FOUND);
         String userId = requestUser.getUserId();
 
@@ -346,7 +345,7 @@ public class BlogPostController {
             return new ResponseEntity<>(e.getMessage(),HttpStatus.UNAUTHORIZED);
         }
 
-        User requestUser = userService.findUserByUsername(jwtService.getUsernameFromToken(jwtString));
+        User requestUser = userService.findUserByUsername(jwtService.getUsernameFromAccessToken(jwtString));
         if(requestUser == null)  return new ResponseEntity<>("User Not Found",HttpStatus.NOT_FOUND);
         String userId = requestUser.getUserId();
 
@@ -379,7 +378,7 @@ public class BlogPostController {
             return new ResponseEntity<>(null,HttpStatus.UNAUTHORIZED);
         }
 
-        User requestUser = userService.findUserByUsername(jwtService.getUsernameFromToken(jwtString));
+        User requestUser = userService.findUserByUsername(jwtService.getUsernameFromAccessToken(jwtString));
         if(requestUser == null)  return new ResponseEntity<>(null,HttpStatus.NOT_FOUND);
 
 
@@ -412,7 +411,7 @@ public class BlogPostController {
             return new ResponseEntity<>(null,HttpStatus.UNAUTHORIZED);
         }
 
-        User requestUser = userService.findUserByUsername(jwtService.getUsernameFromToken(jwtString));
+        User requestUser = userService.findUserByUsername(jwtService.getUsernameFromAccessToken(jwtString));
         if(requestUser == null) return new ResponseEntity<>(null,HttpStatus.NOT_FOUND);
 
         BlogPost blogPost = blogPostService.getBlogPostWithBlogId(payload.get("blogId").toString());
@@ -440,7 +439,7 @@ public class BlogPostController {
             return new ResponseEntity<>(null,HttpStatus.UNAUTHORIZED);
         }
 
-        User requestUser = userService.findUserByUsername(jwtService.getUsernameFromToken(jwtString));
+        User requestUser = userService.findUserByUsername(jwtService.getUsernameFromAccessToken(jwtString));
         if(requestUser == null)  return new ResponseEntity<>(null,HttpStatus.NOT_FOUND);
 
         BlogPost blogPost = blogPostService.getBlogPostWithBlogId(payload.get("blogId").toString());
@@ -484,7 +483,7 @@ public class BlogPostController {
             return new ResponseEntity<>(null,HttpStatus.UNAUTHORIZED);
         }
 
-        User requestUser = userService.findUserByUsername(jwtService.getUsernameFromToken(jwtString));
+        User requestUser = userService.findUserByUsername(jwtService.getUsernameFromAccessToken(jwtString));
         if(requestUser == null) return new ResponseEntity<>(null,HttpStatus.NOT_FOUND);
 
         BlogPost blogPost = blogPostService.getBlogPostWithBlogId(payload.get("blogId").toString());
@@ -518,7 +517,7 @@ public class BlogPostController {
             return new ResponseEntity<>(null,HttpStatus.UNAUTHORIZED);
         }
 
-        User requestUser = userService.findUserByUsername(jwtService.getUsernameFromToken(jwtString));
+        User requestUser = userService.findUserByUsername(jwtService.getUsernameFromAccessToken(jwtString));
         if(requestUser == null)  return new ResponseEntity<>(null,HttpStatus.NOT_FOUND);
 
 
@@ -554,7 +553,7 @@ public class BlogPostController {
             return new ResponseEntity<>(null,HttpStatus.UNAUTHORIZED);
         }
 
-        User requestUser = userService.findUserByUsername(jwtService.getUsernameFromToken(jwtString));
+        User requestUser = userService.findUserByUsername(jwtService.getUsernameFromAccessToken(jwtString));
         if(requestUser == null)  return new ResponseEntity<>(null,HttpStatus.NOT_FOUND);
 
         BlogPost blogPost = blogPostService.getBlogPostWithBlogId(payload.get("blogId").toString());

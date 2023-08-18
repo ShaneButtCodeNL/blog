@@ -12,28 +12,40 @@ import java.util.Date;
 
 @Component
 public class JwtTokenGenerator {
+    private final int HALF_HOUR = 1000 * 60 * 30;
+    private final int ONE_DAY = 1000 * 60 * 60 * 24;
+
 
     @Value("${jwt.secret}")
     private String secret;
 
+    @Value("${jwt.refresh.secret}")
+    private String refreshSecret;
+
     private Key getKey(){
         return Keys.hmacShaKeyFor(Decoders.BASE64.decode(secret));
     }
-    public String createToken(User user){
-        Date iss = new Date();
-        int ONE_DAY = 1000 * 60 * 60 * 24;
-        Date exp = new Date(new Date().getTime() + ONE_DAY);
-        return Jwts.builder().setIssuer("SERVER").setSubject(user.getUsername()).setExpiration(exp).setIssuedAt(iss).claim("role",user.getRoles().toString()).signWith(getKey()).compact();
+    private Key getRefreshKey(){
+        return Keys.hmacShaKeyFor(Decoders.BASE64.decode(refreshSecret));
     }
-    public String createRefreshToken(User user){
+    public String createAccessToken(User user){
         Date iss = new Date();
-        int ONE_DAY = 1000 * 60 * 60 * 24;
-        Date exp = new Date(new Date().getTime() + ONE_DAY);
+        Date exp = new Date(new Date().getTime() + HALF_HOUR);
         return Jwts.builder()
                 .setIssuer("SERVER")
                 .setSubject(user.getUsername())
                 .setExpiration(exp)
                 .setIssuedAt(iss)
                 .claim("role",user.getRoles().toString()).signWith(getKey()).compact();
+    }
+    public String createRefreshToken(User user){
+        Date iss = new Date();
+        Date exp = new Date(new Date().getTime() + ONE_DAY);
+        return Jwts.builder()
+                .setIssuer("SERVER")
+                .setSubject(user.getUsername())
+                .setExpiration(exp)
+                .setIssuedAt(iss)
+                .signWith(getRefreshKey()).compact();
     }
 }
