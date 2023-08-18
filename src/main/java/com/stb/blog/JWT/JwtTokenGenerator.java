@@ -25,4 +25,15 @@ public class JwtTokenGenerator {
         Date exp = new Date(new Date().getTime() + ONE_DAY);
         return Jwts.builder().setIssuer("SERVER").setSubject(user.getUsername()).setExpiration(exp).setIssuedAt(iss).claim("role",user.getRoles().toString()).signWith(getKey()).compact();
     }
+    public String createRefreshToken(User user){
+        Date iss = new Date();
+        int ONE_DAY = 1000 * 60 * 60 * 24;
+        Date exp = new Date(new Date().getTime() + ONE_DAY);
+        return Jwts.builder()
+                .setIssuer("SERVER")
+                .setSubject(user.getUsername())
+                .setExpiration(exp)
+                .setIssuedAt(iss)
+                .claim("role",user.getRoles().toString()).signWith(getKey()).compact();
+    }
 }

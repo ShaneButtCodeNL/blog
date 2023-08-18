@@ -41,18 +41,25 @@ public class BlogPostController {
     }
 
     @GetMapping("/latest")
-    public ResponseEntity<BlogPostReturn> getLatestBlogPost(){
+    public ResponseEntity<BlogPostWithAuthorDetails> getLatestBlogPost(){
         var list = blogPostService.getAllBlogPosts();
-        if(list == null || list.size()==0)return new ResponseEntity<>(null,HttpStatus.NOT_FOUND);
+        if(list == null || list.isEmpty())return new ResponseEntity<>(null,HttpStatus.NOT_FOUND);
         BlogPost latest = list.get(list.size()-1);
-        return new ResponseEntity<>(latest.getBlogPostReturn(),HttpStatus.OK);
+        var user = userService.findUserByUsername(latest.getAuthor());
+        AuthorDetails authorDetails;
+        if(user == null){
+            authorDetails = new AuthorDetails("","",true,true,"");
+        }else{
+            authorDetails = new AuthorDetails(user.getUsername(),user.getUserId(), user.isDisabled(), user.isDisabled(), user.getHighestRole());
+        }
+        return new ResponseEntity<>(new BlogPostWithAuthorDetails(authorDetails,latest.getBlogPostReturn()),HttpStatus.OK);
 
     }
 
     @GetMapping("/latest/{num}")
     public ResponseEntity<List<BlogPostReturn>> getLatestNBlogPost(@PathVariable int num){
         var list = blogPostService.getAllBlogPosts();
-        if(list == null || list.size()==0)return new ResponseEntity<>(null,HttpStatus.NOT_FOUND);
+        if(list == null || list.isEmpty())return new ResponseEntity<>(null,HttpStatus.NOT_FOUND);
         BlogPost[] latest = new BlogPost[num];
         while(num>0){
             num--;
@@ -325,7 +332,6 @@ public class BlogPostController {
 
     @PutMapping("/comment/like/{blogId}/{commentId}")
     @PreAuthorize("hasRole('ROLE_OWNER') or hasRole('ROLE_ADMIN') or hasRole('ROLE_WRITER') or hasRole('ROLE_USER')")
-//    @RolesAllowed({"ROLE_OWNER","ROLE_ADMIN","ROLE_WRITER","ROLE_USER"})
     public ResponseEntity<String> likeBlogPostComment(
             @PathVariable String blogId,
             @PathVariable String commentId,
@@ -577,3 +583,6 @@ public class BlogPostController {
         return new ResponseEntity<>(deleted.toBlogPostCommentReturn(),HttpStatus.OK);
     }
 }
+
+record AuthorDetails(String username,String userId,boolean disabled,boolean banned,String highestRole){};
+record BlogPostWithAuthorDetails(AuthorDetails authorDetails,BlogPostReturn blogDetails){};

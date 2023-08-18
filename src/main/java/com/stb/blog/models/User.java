@@ -97,4 +97,13 @@ public class User implements UserDetails {
     public void enable(){
         isDisabled = false;
     }
+
+    public String getHighestRole(){
+        if(hasRole("ROLE_OWNER"))return "Owner";
+        if(hasRole("ROLE_ADMIN"))return "Admin";
+        if(hasRole("ROLE_MODERATOR"))return "Moderator";
+        if(hasRole("ROLE_WRITER")) return "Writer";
+        return "User";
+
+    }
 }
