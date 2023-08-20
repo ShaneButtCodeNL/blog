@@ -1,5 +1,6 @@
 package com.stb.blog.JWT;
 
+import com.stb.blog.models.TokenReturn;
 import com.stb.blog.models.User;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -28,24 +29,24 @@ public class JwtTokenGenerator {
     private Key getRefreshKey(){
         return Keys.hmacShaKeyFor(Decoders.BASE64.decode(refreshSecret));
     }
-    public String createAccessToken(User user){
+    public TokenReturn createAccessToken(User user){
         Date iss = new Date();
         Date exp = new Date(new Date().getTime() + HALF_HOUR);
-        return Jwts.builder()
+        return new TokenReturn(Jwts.builder()
                 .setIssuer("SERVER")
                 .setSubject(user.getUsername())
                 .setExpiration(exp)
                 .setIssuedAt(iss)
-                .claim("role",user.getRoles().toString()).signWith(getKey()).compact();
+                .claim("role",user.getRoles().toString()).signWith(getKey()).compact(),exp);
     }
-    public String createRefreshToken(User user){
+    public TokenReturn createRefreshToken(User user){
         Date iss = new Date();
         Date exp = new Date(new Date().getTime() + ONE_DAY);
-        return Jwts.builder()
+        return new TokenReturn(Jwts.builder()
                 .setIssuer("SERVER")
                 .setSubject(user.getUsername())
                 .setExpiration(exp)
                 .setIssuedAt(iss)
-                .signWith(getRefreshKey()).compact();
+                .signWith(getRefreshKey()).compact(),exp);
     }
 }

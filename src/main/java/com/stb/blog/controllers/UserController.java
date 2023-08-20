@@ -2,6 +2,7 @@ package com.stb.blog.controllers;
 
 import com.stb.blog.exceptions.InvalidUserCredentialsException;
 import com.stb.blog.models.Role;
+import com.stb.blog.models.TokenReturn;
 import com.stb.blog.models.User;
 import com.stb.blog.models.UserReturn;
 import com.stb.blog.services.JwtService;
@@ -59,18 +60,22 @@ public class UserController{
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<?> refreshTokens(@RequestHeader String token){
-        System.out.println("Token \n"+token);
+    public ResponseEntity<TokenReturn> refreshTokens(@RequestHeader String token){
         if(!jwtService.validateRefreshToken(token))return new ResponseEntity<>(null,HttpStatus.UNAUTHORIZED);
         String username = jwtService.getUsernameFromRefreshToken(token);
         User user = userService.findUserByUsername(username);
-        String newToken;
+        TokenReturn newAccessToken;
+        TokenReturn newRefreshToken;
         try{
-            newToken=jwtService.generateAccessToken(user);
+            newAccessToken=jwtService.generateAccessToken(user);
+            newRefreshToken = jwtService.generateRefreshToken(user);
         }catch(InvalidUserCredentialsException e){
             return new ResponseEntity<>(null,HttpStatus.NOT_FOUND);
         }
-        return ResponseEntity.ok().body(newToken);
+        HttpHeaders resHeaders = new HttpHeaders();
+        resHeaders.set("token",newRefreshToken.getToken());
+        resHeaders.set("expires",newRefreshToken.getExpires().toString());
+        return ResponseEntity.ok().headers(resHeaders).body(newAccessToken);
     }
 
     @PostMapping("/validate-token")
@@ -82,15 +87,15 @@ public class UserController{
     }
 
     @PostMapping("/revalidate-token")
-    public ResponseEntity<?> revalidateToken(@RequestBody Map<String,String> payload){
+    public ResponseEntity<TokenReturn> revalidateToken(@RequestBody Map<String,String> payload){
         if(!payload.containsKey("token"))return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
         String username = jwtService.getUsernameFromAccessToken(payload.get("token"));
         User user = userService.findUserByUsername(username);
-        String newToken ;
+        TokenReturn newToken ;
         try {
             newToken=jwtService.generateAccessToken(user);
         }catch (Exception e){
-            return new ResponseEntity<>("",HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(null,HttpStatus.NOT_FOUND);
         }
         return new ResponseEntity<>(newToken,HttpStatus.OK);
     }
@@ -125,7 +130,7 @@ public class UserController{
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody Map<String,Object> payload){
+    public ResponseEntity<LoginReturn> login(@RequestBody Map<String,Object> payload){
         if(!payload.containsKey("username") || !payload.containsKey("password")){
             return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
         }
@@ -134,23 +139,25 @@ public class UserController{
 
         var user = userService.findUserByUsernameAndPassword(username,password);
         if(user == null) return new ResponseEntity<>(null,HttpStatus.NOT_FOUND);
-        String accessToken;
-        String refreshToken;
+        TokenReturn accessToken;
+        TokenReturn refreshTokenReturn;
         try{
             accessToken=jwtService.generateAccessToken(user);
-            refreshToken= jwtService.generateRefreshToken(user);
+            refreshTokenReturn= jwtService.generateRefreshToken(user);
         } catch(InvalidUserCredentialsException e){
             return new ResponseEntity<>(null,HttpStatus.NOT_FOUND);
         }
+        String refreshToken = refreshTokenReturn.getToken();
         updateUserLastAccess(user);
         HttpHeaders resHeaders = new HttpHeaders();
         resHeaders.set("token",refreshToken);
+        resHeaders.set("tokenExpires",refreshTokenReturn.getExpires().toString());
         //return new ResponseEntity<>(new LoginReturn(accessToken,user.getUserReturn()),HttpStatus.OK);
         return ResponseEntity.ok().headers(resHeaders).body(new LoginReturn(accessToken,user.getUserReturn()) );
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody Map<String,Object> payload){
+    public ResponseEntity<LoginReturn> registerUser(@RequestBody Map<String,Object> payload){
         Date dateNow = new Date();
         if(!payload.containsKey("username") || !payload.containsKey("password")){
             return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
@@ -167,15 +174,15 @@ public class UserController{
         user.setUserId(new ObjectId().toHexString());
         user.setLastAccess(dateNow);
         user.setCreatedOn(dateNow);
-        user.setRoles(new HashSet<Role>());
+        user.setRoles(new HashSet<>());
         user.addRole("ROLE_USER");
         user.setUsername(username);
         user.setPassword(passwordEncoder.encode(password));
-        String jwtString;
+        TokenReturn jwtString;
         try{
             jwtString=jwtService.generateAccessToken(user);
         }catch(InvalidUserCredentialsException e){
-            return new ResponseEntity<>(e.getMessage(),HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
         }
         userService.saveNewUser(user);
         return new ResponseEntity<>(new LoginReturn(jwtString,user.getUserReturn()),HttpStatus.CREATED);
@@ -353,5 +360,5 @@ public class UserController{
 
 }
 
-record LoginReturn(String token, UserReturn details){}
+record LoginReturn(TokenReturn token, UserReturn details){}
 record AuthCheck(String token,List<String> roles){}

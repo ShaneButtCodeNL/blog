@@ -3,6 +3,7 @@ package com.stb.blog.services;
 import com.stb.blog.JWT.JwtTokenGenerator;
 import com.stb.blog.JWT.JwtTokenReader;
 import com.stb.blog.exceptions.*;
+import com.stb.blog.models.TokenReturn;
 import com.stb.blog.models.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,19 +26,19 @@ public class JwtService {
      * @return The JWT String for this user if valid.
      * @throws InvalidUserCredentialsException If user is null or if "username" or "password" are empty strings
      */
-    public String generateAccessToken(User user) throws InvalidUserCredentialsException {
+    public TokenReturn generateAccessToken(User user) throws InvalidUserCredentialsException {
         if(user==null) throw new EmptyUserException("User Doesn't Exist.");
         if(user.getUsername().equalsIgnoreCase(""))throw new NoUsernameException("Username is empty.");
         if(user.getPassword().equalsIgnoreCase(""))throw new NoPasswordException("Password is empty.");
-        String token= jwtTokenGenerator.createAccessToken(user);
+        TokenReturn token= jwtTokenGenerator.createAccessToken(user);
         return token;
     }
-    public String generateRefreshToken(User user) throws InvalidUserCredentialsException{
+    public TokenReturn generateRefreshToken(User user) throws InvalidUserCredentialsException{
         if(user==null) throw new EmptyUserException("User Doesn't Exist.");
         if(user.getUsername().equalsIgnoreCase(""))throw new NoUsernameException("Username is empty.");
         if(user.getPassword().equalsIgnoreCase(""))throw new NoPasswordException("Password is empty.");
-        String token= jwtTokenGenerator.createRefreshToken(user);
-        return token;
+        TokenReturn tokenReturn= jwtTokenGenerator.createRefreshToken(user);
+        return tokenReturn;
     }
 
     /**
