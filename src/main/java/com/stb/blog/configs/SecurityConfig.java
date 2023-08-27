@@ -60,6 +60,7 @@ public class SecurityConfig{
                         .requestMatchers("/api/blog/users/revalidate-token").permitAll()
                         .requestMatchers("/api/blog/users/has-any-auth").permitAll()
                         .requestMatchers("/api/blog/users/refresh").permitAll()
+                        .requestMatchers("/api/blog/users/login-with-token").permitAll()
                         .anyRequest().authenticated())
                         .exceptionHandling(custom -> custom
                                 .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)));

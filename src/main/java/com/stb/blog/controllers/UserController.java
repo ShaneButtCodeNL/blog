@@ -60,7 +60,7 @@ public class UserController{
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<TokenReturn> refreshTokens(@RequestHeader String token){
+    public ResponseEntity<LoginReturn> refreshTokens(@RequestHeader String token){
         if(!jwtService.validateRefreshToken(token))return new ResponseEntity<>(null,HttpStatus.UNAUTHORIZED);
         String username = jwtService.getUsernameFromRefreshToken(token);
         User user = userService.findUserByUsername(username);
@@ -75,7 +75,7 @@ public class UserController{
         HttpHeaders resHeaders = new HttpHeaders();
         resHeaders.set("token",newRefreshToken.getToken());
         resHeaders.set("expires",newRefreshToken.getExpires().toString());
-        return ResponseEntity.ok().headers(resHeaders).body(newAccessToken);
+        return ResponseEntity.ok().headers(resHeaders).body(new LoginReturn(newAccessToken,user.getUserReturn()));
     }
 
     @PostMapping("/validate-token")
@@ -152,8 +152,27 @@ public class UserController{
         HttpHeaders resHeaders = new HttpHeaders();
         resHeaders.set("token",refreshToken);
         resHeaders.set("tokenExpires",refreshTokenReturn.getExpires().toString());
-        //return new ResponseEntity<>(new LoginReturn(accessToken,user.getUserReturn()),HttpStatus.OK);
         return ResponseEntity.ok().headers(resHeaders).body(new LoginReturn(accessToken,user.getUserReturn()) );
+    }
+
+    @PostMapping("/login-with-token")
+    public ResponseEntity<?> loginWithToken(@RequestBody Map<String,String> payload){
+        if(!payload.containsKey("jwt")) return  new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
+        String token = payload.get("jwt");
+        String username = jwtService.getUsernameFromRefreshToken(token);
+        User user = userService.findUserByUsername(username);
+        TokenReturn accessToken,refreshToken;
+        try{
+            accessToken = jwtService.generateAccessToken(user);
+            refreshToken = jwtService.generateRefreshToken(user);
+        }catch (InvalidUserCredentialsException e){
+            return new ResponseEntity<>(null,HttpStatus.NOT_FOUND);
+        }
+        updateUserLastAccess(user);
+        HttpHeaders resHeaders = new HttpHeaders();
+        resHeaders.set("token",refreshToken.getToken());
+        resHeaders.set("tokenExpires",refreshToken.getExpires().toString());
+        return ResponseEntity.ok().headers(resHeaders).body(new LoginReturn(accessToken,user.getUserReturn()));
     }
 
     @PostMapping("/register")
