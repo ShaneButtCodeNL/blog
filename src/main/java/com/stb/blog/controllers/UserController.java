@@ -175,6 +175,7 @@ public class UserController{
         return ResponseEntity.ok().headers(resHeaders).body(new LoginReturn(accessToken,user.getUserReturn()));
     }
 
+    //TODO UPDATE
     @PostMapping("/register")
     public ResponseEntity<LoginReturn> registerUser(@RequestBody Map<String,Object> payload){
         Date dateNow = new Date();
